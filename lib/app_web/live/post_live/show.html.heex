@@ -1,0 +1,50 @@
+<.header>
+  <%= @post.body %>
+  <div :if={@post.path} class="max-w-xs overflow-hidden">
+    <img src={@post.path} class="w-full h-auto block" alt="添付画像" />
+  </div>
+  <:subtitle>Author: <%= @post.user.email %></:subtitle>
+  <:actions>
+    <.link :if={@can_update} patch={~p"/posts/#{@post}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit</.button>
+    </.link>
+    <.link
+      :if={@can_delete}
+      phx-click={JS.push("delete", value: %{id: @post.id})}
+      data-confirm="Are you sure?"
+    >
+      <.button>Delete</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Like count">
+    <.button phx-click={JS.push("like", value: %{id: @post.id})}>
+      <%= @like_count %> Likes
+    </.button>
+  </:item>
+  <:item title="Creation Date"><%= @post.inserted_at %></:item>
+  <:item title="Last Modified"><%= @post.updated_at %></:item>
+</.list>
+
+<h2>いいねしたユーザー</h2>
+<ul id="liked-users" phx-update="stream">
+  <li :for={{dom_id, like} <- @streams.likes} id={dom_id}>
+    <%= like.user.email %>
+  </li>
+</ul>
+
+<.back navigate={~p"/posts"}>Back to posts</.back>
+
+<.modal :if={@live_action == :edit} id="post-modal" show on_cancel={JS.patch(~p"/posts/#{@post}")}>
+  <.live_component
+    module={AppWeb.PostLive.FormComponent}
+    id={@post.id}
+    current_user={@current_user}
+    title={@page_title}
+    action={@live_action}
+    post={@post}
+    patch={~p"/posts/#{@post}"}
+  />
+</.modal>

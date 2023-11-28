@@ -1,0 +1,36 @@
+<.header>
+  Listing Posts
+  <:actions>
+    <.button phx-click="refresh">Refresh</.button>
+    <.link patch={~p"/posts/new"}>
+      <.button>New Post</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<div id="posts" phx-update="stream">
+  <article :for={{dom_id, post} <- @streams.posts} id={dom_id}>
+    <.link navigate={~p"/posts/#{post}"}>
+      <h3><%= post.user.email %></h3>
+    </.link>
+    <div><%= post.body %></div>
+    <div :if={post.path} class="max-w-xs overflow-hidden">
+      <img src={post.path} class="w-full h-auto block" alt="添付画像" />
+    </div>
+    <div><%= post.like_count %> Likes</div>
+    <div><%= post.inserted_at %></div>
+    <hr />
+  </article>
+</div>
+
+<.modal :if={@live_action == :new} id="post-modal" show on_cancel={JS.patch(~p"/posts")}>
+  <.live_component
+    module={AppWeb.PostLive.FormComponent}
+    id={@post.id || :new}
+    current_user={@current_user}
+    title={@page_title}
+    action={@live_action}
+    post={@post}
+    patch={~p"/posts"}
+  />
+</.modal>
