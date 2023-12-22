@@ -6,6 +6,7 @@ defmodule AppWeb.PostLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
+    if connected?(socket), do: App.CommunicationBroadcaster.subscribe()
     {:ok, stream(socket, :posts, Communication.list_posts(), at: 0, limit: 10)}
   end
 
@@ -28,6 +29,12 @@ defmodule AppWeb.PostLive.Index do
 
   @impl true
   def handle_info({AppWeb.PostLive.FormComponent, {:saved, post}}, socket) do
+    App.CommunicationBroadcaster.broadcast({:saved, post})
+    {:noreply, stream_insert(socket, :posts, post, at: 0)}
+  end
+
+  @impl true
+  def handle_info({:saved, post}, socket) do
     {:noreply, stream_insert(socket, :posts, post, at: 0)}
   end
 
